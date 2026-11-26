@@ -97,16 +97,41 @@ function useAppStore() {
     note: details?.note,
     sentAt: now(),
   });
+  /**
+   * Requests sent with one click in standard mode carry no description. When the
+   * reflection buffer applies (redesign + buffer on), they are treated as encounters
+   * still awaiting reflection: moved to the Met list, with the 7 days counted from the click.
+   */
+  const absorbUndescribedInvitations = (s: AppState): Partial<AppState> => {
+    const undescribed = s.invitations.filter((i) => i.direction === 'outgoing' && i.type === 'unspecified');
+    if (undescribed.length === 0) return {};
+    const fresh = undescribed.filter((i) => !s.metList.some((m) => m.personId === i.personId));
+    return {
+      invitations: s.invitations.filter((i) => !undescribed.includes(i)),
+      metList: [
+        ...s.metList,
+        ...fresh.map((i) => ({ personId: i.personId, metAt: i.sentAt, expiresAt: addDays(i.sentAt, MET_REFLECTION_DAYS) })),
+      ],
+    };
+  };
   const updateMet = (personId: string, patch: Partial<MetEntry>) =>
     update((s) => ({ metList: s.metList.map((m) => (m.personId === personId ? { ...m, ...patch } : m)) }));
 
   const actions = {
-    setMode: (mode: Mode) => update(() => ({ mode })),
+    setMode: (mode: Mode) =>
+      update((s) => ({
+        mode,
+        ...(mode === 'redesign' && s.reflectionBuffer ? absorbUndescribedInvitations(s) : {}),
+      })),
 
     sendInvitation: (personId: string, details?: RelationshipDetails) =>
       update((s) => ({ invitations: [...s.invitations, newInvitation(personId, details)] })),
 
-    setReflectionBuffer: (on: boolean) => update(() => ({ reflectionBuffer: on })),
+    setReflectionBuffer: (on: boolean) =>
+      update((s) => ({
+        reflectionBuffer: on,
+        ...(on && s.mode === 'redesign' ? absorbUndescribedInvitations(s) : {}),
+      })),
     setRenewalReminders: (on: boolean) => update(() => ({ renewalReminders: on })),
 
     addToMetList: (personId: string) =>
