@@ -9,7 +9,7 @@ organisations and posts are fictional. There is no real API: data is local mock 
 Requires [Node.js](https://nodejs.org/) 20.19+ or 22.12+ (check with `node -v`).
 
 ```bash
-git clone <this-repo-url>
+git clone https://github.com/tgruji/nuance-countertech.git
 cd nuance-countertech
 npm install
 npm run dev
