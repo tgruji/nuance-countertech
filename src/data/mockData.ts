@@ -296,7 +296,6 @@ export function initialInvitations(): Invitation[] {
     { id: 'inv1', personId: 'p12', direction: 'incoming', type: 'collaborator', context: 'We were on the same team at HackCambridge 2026 — built the transit accessibility prototype', note: 'Great working with you all weekend! Let’s keep in touch.', sentAt: daysAgo(2) },
     { id: 'inv2', personId: 'p11', direction: 'incoming', type: 'met-briefly', context: 'We spoke after your panel at the Cambridge Tech Ethics Forum', note: 'Enjoyed your question about metrics — would love to stay in touch.', sentAt: daysAgo(5) },
     { id: 'inv3', personId: 'p13', direction: 'incoming', type: 'online-only', context: 'I came across your profile', note: 'Hi Jane, I’d like to add you to my professional network.', sentAt: daysAgo(9) },
-    { id: 'inv4', personId: 'p14', direction: 'outgoing', type: 'met-briefly', context: 'Discussed his interpretability poster at NeurIPS 2025', sentAt: daysAgo(4) },
   ];
 }
 
