@@ -78,7 +78,7 @@ export function Profile({ id }: { id: string }) {
 
   const isMe = person.id === ME_ID;
   const conn = app.connectionOf(person.id);
-  // Mock profiles store counts excluding Jordan; Jordan's own side comes from live state,
+  // Mock profiles store counts excluding Jane; Jane's own side comes from live state,
   // so accepting, removing or downgrading updates every count shown here.
   const spectrum = isMe ? mySpectrum : { ...person.spectrum, unknown: 0 };
   if (!isMe && conn) spectrum[tierOf(conn.theirType ?? conn.type)]++;

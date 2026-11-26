@@ -9,7 +9,7 @@ export const ME_ID = 'me';
 export const PEOPLE: Person[] = [
   {
     id: ME_ID,
-    name: 'Jordan Ellis',
+    name: 'Jane Bennet',
     headline: 'MPhil in Technology Policy, University of Cambridge | Previously Research Intern at Lumen Labs',
     location: 'Cambridge, England, United Kingdom',
     avatarColor: 'bg-indigo-600',
@@ -278,9 +278,9 @@ export const getPerson = (id: string): Person => byId.get(id)!;
 export function initialConnections(): Connection[] {
   return [
     { personId: 'p1', type: 'collaborator', context: 'Co-built the accessibility evaluation toolkit during my 2025 internship at Lumen Labs', theirType: 'collaborator', theirContext: 'Built our accessibility toolkit together', since: monthsAgo(16), lastReviewed: monthsAgo(3) },
-    { personId: 'p3', type: 'mentor', context: 'Supervised my undergraduate dissertation on classification systems', theirType: 'mentor', theirContext: 'I supervised Jordan’s dissertation', since: monthsAgo(30), lastReviewed: monthsAgo(10) },
+    { personId: 'p3', type: 'mentor', context: 'Supervised my undergraduate dissertation on classification systems', theirType: 'mentor', theirContext: 'I supervised Jane’s dissertation', since: monthsAgo(30), lastReviewed: monthsAgo(10) },
     { personId: 'p9', type: 'collaborator', context: 'Co-organise the Algorithms & Society reading group', theirType: 'classmate', theirContext: 'We’re both at Cambridge', since: monthsAgo(8), lastReviewed: monthsAgo(8) },
-    { personId: 'p10', type: 'mentee', context: 'Mentored him through his first frontend project at Lumen Labs', theirType: 'mentee', theirContext: 'Jordan mentored me during my internship', since: monthsAgo(15), lastReviewed: monthsAgo(4) },
+    { personId: 'p10', type: 'mentee', context: 'Mentored him through his first frontend project at Lumen Labs', theirType: 'mentee', theirContext: 'Jane mentored me during my internship', since: monthsAgo(15), lastReviewed: monthsAgo(4) },
     { personId: 'p5', type: 'classmate', context: 'Same MPhil Technology Policy cohort', theirType: 'classmate', since: monthsAgo(2), lastReviewed: monthsAgo(2) },
     { personId: 'p4', type: 'colleague', context: 'Both at Northwind Analytics in summer 2023 — different teams', theirType: 'met-briefly', theirContext: 'Met at a Northwind all-hands', since: monthsAgo(40), lastReviewed: monthsAgo(14) },
     { personId: 'p2', type: 'met-briefly', context: 'Talked for ten minutes after a panel at the Digital Futures Summit 2024', theirType: 'met-briefly', since: monthsAgo(25), lastReviewed: monthsAgo(14) },
@@ -295,7 +295,7 @@ export function initialInvitations(): Invitation[] {
   return [
     { id: 'inv1', personId: 'p12', direction: 'incoming', type: 'collaborator', context: 'We were on the same team at HackCambridge 2026 — built the transit accessibility prototype', note: 'Great working with you all weekend! Let’s keep in touch.', sentAt: daysAgo(2) },
     { id: 'inv2', personId: 'p11', direction: 'incoming', type: 'met-briefly', context: 'We spoke after your panel at the Cambridge Tech Ethics Forum', note: 'Enjoyed your question about metrics — would love to stay in touch.', sentAt: daysAgo(5) },
-    { id: 'inv3', personId: 'p13', direction: 'incoming', type: 'online-only', context: 'I came across your profile', note: 'Hi Jordan, I’d like to add you to my professional network.', sentAt: daysAgo(9) },
+    { id: 'inv3', personId: 'p13', direction: 'incoming', type: 'online-only', context: 'I came across your profile', note: 'Hi Jane, I’d like to add you to my professional network.', sentAt: daysAgo(9) },
     { id: 'inv4', personId: 'p14', direction: 'outgoing', type: 'met-briefly', context: 'Discussed his interpretability poster at NeurIPS 2025', sentAt: daysAgo(4) },
   ];
 }
@@ -304,10 +304,10 @@ export function initialFollowing(): string[] {
   return ['p1', 'p3', 'p9', 'p15'];
 }
 
-// People who follow Jordan without being connected.
+// People who follow Jane without being connected.
 const NON_CONNECTION_FOLLOWERS = ['p13', 'p17'];
 
-/** Connections follow each other; a few non-connections follow Jordan too. */
+/** Connections follow each other; a few non-connections follow Jane too. */
 export function initialFollowers(connections: Connection[]): string[] {
   return [...connections.map((c) => c.personId), ...NON_CONNECTION_FOLLOWERS];
 }
@@ -396,7 +396,7 @@ export const CONVERSATIONS: Conversation[] = [
   {
     personId: 'p1',
     messages: [
-      { from: 'them', text: 'Hey Jordan! The toolkit is finally public 🎉', at: hoursAgo(5) },
+      { from: 'them', text: 'Hey Jane! The toolkit is finally public 🎉', at: hoursAgo(5) },
       { from: 'me', text: 'Amazing!! Congrats to the whole team.', at: hoursAgo(4) },
       { from: 'them', text: 'Couldn’t have done the screen-reader tests without you. Coffee next time you’re in London?', at: hoursAgo(4) },
     ],
@@ -411,7 +411,7 @@ export const CONVERSATIONS: Conversation[] = [
   {
     personId: 'p8',
     messages: [
-      { from: 'them', text: 'Hi Jordan, I came across your profile and think you’d be a great fit for a senior backend role…', at: daysAgo(12) },
+      { from: 'them', text: 'Hi Jane, I came across your profile and think you’d be a great fit for a senior backend role…', at: daysAgo(12) },
     ],
   },
 ];
