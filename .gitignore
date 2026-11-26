@@ -1,0 +1,12 @@
+# Dependencies and build output
+node_modules/
+dist/
+
+# Private presentation notes (not for the public repo)
+DEMO_SCRIPT.md
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+*.log
