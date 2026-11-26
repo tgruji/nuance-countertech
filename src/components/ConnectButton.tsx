@@ -91,7 +91,7 @@ export function ConnectButton({
     );
   }
 
-  if (app.redesign && app.metEntryFor(personId)) {
+  if (app.bufferActive && app.metEntryFor(personId)) {
     return (
       <Button size={size} variant="muted" className={className} title="Open your Met list" onClick={() => navigate('/network')}>
         <Coffee size={16} /> In Met list

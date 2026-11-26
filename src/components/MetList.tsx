@@ -33,12 +33,6 @@ export function MetList() {
             People you’ve met but haven’t yet invited. Nothing is sent until you confirm. Each encounter has a{' '}
             {MET_REFLECTION_DAYS}-day reflection period.
           </p>
-          {!app.reflectionBuffer && (
-            <p className="mt-1 text-xs text-black/50">
-              The reflection buffer is off, so Connect goes straight to the invitation step. Turn it on under
-              “Reflection settings”.
-            </p>
-          )}
         </div>
       </div>
 

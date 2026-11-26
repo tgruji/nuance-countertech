@@ -125,7 +125,11 @@ function useAppStore() {
       })),
 
     sendInvitation: (personId: string, details?: RelationshipDetails) =>
-      update((s) => ({ invitations: [...s.invitations, newInvitation(personId, details)] })),
+      update((s) => ({
+        invitations: [...s.invitations, newInvitation(personId, details)],
+        // Inviting someone directly (buffer off) ends any encounter still held on the Met list.
+        metList: s.metList.filter((m) => m.personId !== personId),
+      })),
 
     setReflectionBuffer: (on: boolean) =>
       update((s) => ({

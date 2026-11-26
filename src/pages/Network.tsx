@@ -181,7 +181,7 @@ export function Network() {
           ) : (
             filterButton('all', 'Connections', app.connections.length)
           )}
-          {app.redesign && (
+          {app.bufferActive && (
             <button
               onClick={() => document.getElementById('met-list')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
               className="flex w-full items-center gap-3 border-t border-black/10 px-4 py-2.5 text-left text-sm text-black/70 hover:bg-black/5"
@@ -240,7 +240,8 @@ export function Network() {
           )}
         </Card>
 
-        {app.redesign && <MetList />}
+        {/* Hidden while the buffer is off; entries are kept and reappear when it's turned back on. */}
+        {app.bufferActive && <MetList />}
 
         {app.redesign && app.dueConnections.length > 0 && (
           <Card className="ring-1 ring-amber-300">
