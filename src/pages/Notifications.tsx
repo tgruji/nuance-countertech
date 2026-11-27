@@ -25,7 +25,7 @@ export function useNotifications(): Notice[] {
       text: (
         <>
           <b>{p.name}</b> wants to connect
-          {app.redesign && inv.type !== 'unspecified' && (
+          {app.faceted && inv.type !== 'unspecified' && (
             <> and describes you as: <b>{RELATIONSHIPS[inv.type].label.toLowerCase()}</b> — “{inv.context}”</>
           )}
         </>
@@ -41,8 +41,9 @@ export function useNotifications(): Notice[] {
       list.push({
         key: `due-${c.personId}`,
         icon: <span className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-800"><Hourglass size={22} /></span>,
-        text:
-          c.type === 'unspecified' ? (
+        text: !app.faceted ? (
+            <>It’s been {duration(c.lastReviewed)} since you last reconsidered your connection with <b>{p.name}</b>. Do you want to keep it?</>
+          ) : c.type === 'unspecified' ? (
             <>You connected with <b>{p.name}</b> {duration(c.since)} ago without describing how you know each other. Is this a real relationship?</>
           ) : (
             <>It’s been {duration(c.lastReviewed)} since you reflected on your connection with <b>{p.name}</b> (“{c.context}”). Does it still describe your relationship?</>

@@ -21,7 +21,7 @@ export function Home() {
   const [filter, setFilter] = useState<FeedFilter>('all');
 
   const matches = (p: Post) => {
-    if (filter === 'all' || !app.redesign) return true;
+    if (filter === 'all' || !app.faceted) return true;
     if (p.authorId === ME_ID) return false;
     const conn = app.connectionOf(p.authorId);
     if (filter === 'following') return !conn;
@@ -36,7 +36,7 @@ export function Home() {
       </aside>
       <main className="min-w-0 space-y-2">
         <Composer />
-        {app.redesign && (
+        {app.faceted && (
           <div className="flex flex-wrap items-center gap-1.5 py-1">
             <span className="mr-1 text-xs text-black/60">Show posts from:</span>
             {FILTERS.map((f) => (

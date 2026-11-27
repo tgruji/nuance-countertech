@@ -51,7 +51,7 @@ export function PostCard({ post }: { post: Post }) {
           <Ellipsis size={20} className="text-black/60" />
         )}
       </div>
-      {app.redesign && conn && conn.context && (
+      {app.faceted && conn && conn.context && (
         <p className="mx-4 mt-2 rounded bg-black/[0.03] px-2 py-1 text-[11px] text-black/60">
           You know {author.name.split(' ')[0]}: {conn.context}
         </p>

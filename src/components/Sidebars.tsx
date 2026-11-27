@@ -30,7 +30,7 @@ export function ProfileSidebar() {
           <p className="mt-1 text-xs text-black/50">{me.location}</p>
         </a>
         <div className="border-t border-black/10 px-4 py-3">
-          {app.redesign ? (
+          {app.faceted ? (
             <a href="#/network" className="block">
               <p className="mb-2 text-xs font-semibold text-black/60">Your connections by relationship depth</p>
               <Spectrum counts={spectrum} compact />
@@ -90,7 +90,7 @@ export function SuggestionsSidebar() {
           ))}
         </ul>
       </Card>
-      {app.redesign && (
+      {app.faceted && (
         <Card className="p-4 text-xs text-black/70">
           <p className="mb-1 flex items-center gap-1.5 font-semibold text-black/90">
             <Info size={14} /> Why does Nuance ask how you know people?

@@ -31,6 +31,11 @@ interface AppState {
   reflectionBuffer: boolean;
   /** When off, connections are never resurfaced for periodic reflection. */
   renewalReminders: boolean;
+  /**
+   * When off (redesign only), relationship types, contexts and depth charts are hidden and
+   * connections look undifferentiated. Stored descriptions are kept untouched.
+   */
+  facetedConnections: boolean;
 }
 
 export interface RelationshipDetails {
@@ -52,6 +57,7 @@ function initialState(): AppState {
     metList: initialMetList(),
     reflectionBuffer: true,
     renewalReminders: true,
+    facetedConnections: true,
   };
 }
 
@@ -88,7 +94,7 @@ function useAppStore() {
   const update = (fn: (s: AppState) => Partial<AppState>) => setState((s) => ({ ...s, ...fn(s) }));
   const now = () => new Date().toISOString();
   const addFollow = (list: string[], id: string) => (list.includes(id) ? list : [...list, id]);
-  const newInvitation = (personId: string, details?: RelationshipDetails): Invitation => ({
+  const newInvitation = (personId: string, details?: RelationshipDetails, deliberate?: boolean): Invitation => ({
     id: `inv-${Date.now()}`,
     personId,
     direction: 'outgoing',
@@ -96,6 +102,7 @@ function useAppStore() {
     context: details?.context ?? '',
     note: details?.note,
     sentAt: now(),
+    ...(deliberate ? { deliberate } : {}),
   });
   /**
    * Requests sent with one click in standard mode carry no description. When the
@@ -103,7 +110,9 @@ function useAppStore() {
    * still awaiting reflection: moved to the Met list, with the 7 days counted from the click.
    */
   const absorbUndescribedInvitations = (s: AppState): Partial<AppState> => {
-    const undescribed = s.invitations.filter((i) => i.direction === 'outgoing' && i.type === 'unspecified');
+    const undescribed = s.invitations.filter(
+      (i) => i.direction === 'outgoing' && i.type === 'unspecified' && !i.deliberate,
+    );
     if (undescribed.length === 0) return {};
     const fresh = undescribed.filter((i) => !s.metList.some((m) => m.personId === i.personId));
     return {
@@ -126,7 +135,7 @@ function useAppStore() {
 
     sendInvitation: (personId: string, details?: RelationshipDetails) =>
       update((s) => ({
-        invitations: [...s.invitations, newInvitation(personId, details)],
+        invitations: [...s.invitations, newInvitation(personId, details, s.mode === 'redesign' && !details)],
         // Inviting someone directly (buffer off) ends any encounter still held on the Met list.
         metList: s.metList.filter((m) => m.personId !== personId),
       })),
@@ -137,6 +146,7 @@ function useAppStore() {
         ...(on && s.mode === 'redesign' ? absorbUndescribedInvitations(s) : {}),
       })),
     setRenewalReminders: (on: boolean) => update(() => ({ renewalReminders: on })),
+    setFacetedConnections: (on: boolean) => update(() => ({ facetedConnections: on })),
 
     addToMetList: (personId: string) =>
       update((s) =>
@@ -145,11 +155,14 @@ function useAppStore() {
           : { metList: [...s.metList, { personId, metAt: now(), expiresAt: addDays(now(), MET_REFLECTION_DAYS) }] },
       ),
 
-    /** Confirm an encounter: leaves the Met list and enters the normal invitation workflow. */
-    confirmMet: (personId: string, details: RelationshipDetails) =>
+    /**
+     * Confirm an encounter: leaves the Met list and enters the normal invitation workflow.
+     * Without details (faceted connections off) the invitation is sent undescribed.
+     */
+    confirmMet: (personId: string, details?: RelationshipDetails) =>
       update((s) => ({
         metList: s.metList.filter((m) => m.personId !== personId),
-        invitations: [...s.invitations, newInvitation(personId, details)],
+        invitations: [...s.invitations, newInvitation(personId, details, !details)],
       })),
 
     dismissMet: (personId: string) =>
@@ -171,7 +184,8 @@ function useAppStore() {
       update((s) => {
         const inv = s.invitations.find((i) => i.id === id);
         if (!inv) return {};
-        const standard = s.mode === 'standard' && !details;
+        // Without facets (standard mode, or the toggle off) nothing is classified on accept.
+        const standard = (s.mode === 'standard' || !s.facetedConnections) && !details;
         const conn: Connection = {
           personId: inv.personId,
           type: standard ? 'unspecified' : details?.type ?? inv.type,
@@ -280,7 +294,9 @@ function useAppStore() {
       redesign: state.mode === 'redesign',
       /** Reflection buffer is a redesign feature; standard mode always uses the baseline flow. */
       bufferActive: state.mode === 'redesign' && state.reflectionBuffer,
-      isDue: (c: Connection) => state.renewalReminders && isReflectionDue(c),
+      /** Relationship types, contexts and depth charts are shown. Standard mode never shows them. */
+      faceted: state.mode === 'redesign' && state.facetedConnections,
+      isDue: (c: Connection) => state.renewalReminders && isReflectionDue(c, state.facetedConnections),
       metEntryFor: (id: string) => state.metList.find((m) => m.personId === id),
       connectionOf: (id: string) => state.connections.find((c) => c.personId === id),
       incomingInvitationFrom: (id: string) =>
@@ -288,7 +304,9 @@ function useAppStore() {
       outgoingInvitationTo: (id: string) =>
         state.invitations.find((i) => i.personId === id && i.direction === 'outgoing'),
       isFollowing: (id: string) => state.following.includes(id),
-      dueConnections: state.renewalReminders ? state.connections.filter((c) => isReflectionDue(c)) : [],
+      dueConnections: state.renewalReminders
+        ? state.connections.filter((c) => isReflectionDue(c, state.facetedConnections))
+        : [],
       incoming: state.invitations.filter((i) => i.direction === 'incoming'),
       outgoing: state.invitations.filter((i) => i.direction === 'outgoing'),
     }),

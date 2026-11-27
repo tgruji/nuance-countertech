@@ -74,6 +74,7 @@ export function Profile({ id }: { id: string }) {
   const app = useApp();
   const person = PEOPLE.find((p) => p.id === id);
   const mySpectrum = useMySpectrum();
+  const [reflecting, setReflecting] = useState(false);
   if (!person) return <Card className="p-6">Profile not found.</Card>;
 
   const isMe = person.id === ME_ID;
@@ -123,7 +124,7 @@ export function Profile({ id }: { id: string }) {
               </ul>
             </div>
 
-            {app.redesign && (
+            {app.faceted && (
               <div className="mt-3 max-w-sm">
                 <p className="mb-1 text-xs font-semibold text-black/60">
                   {isMe ? 'Your' : `${firstName(person.name)}’s`} connections by relationship depth
@@ -141,7 +142,13 @@ export function Profile({ id }: { id: string }) {
               ) : conn ? (
                 <>
                   <Button onClick={() => navigate('/messaging')}><MessageSquare size={16} /> Message</Button>
-                  {!app.redesign && (
+                  {/* Without facets the relationship card is hidden, so reconsidering happens from here. */}
+                  {app.redesign && !app.faceted && app.renewalReminders && (
+                    <Button variant={app.isDue(conn) ? 'primary' : 'secondary'} onClick={() => setReflecting(true)}>
+                      <RefreshCw size={16} /> Reflect
+                    </Button>
+                  )}
+                  {!app.faceted && (
                     <Button variant="muted" onClick={() => confirm(`Remove ${person.name} from your connections?`) && app.removeConnection(person.id, false)}>
                       Remove connection
                     </Button>
@@ -157,7 +164,8 @@ export function Profile({ id }: { id: string }) {
           </div>
         </Card>
 
-        {app.redesign && !isMe && <RelationshipCard personId={person.id} />}
+        {app.faceted && !isMe && <RelationshipCard personId={person.id} />}
+        {reflecting && <ReflectModal personId={person.id} onClose={() => setReflecting(false)} />}
 
         <Card className="p-6">
           <h2 className="mb-2 text-xl font-semibold">About</h2>

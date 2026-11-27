@@ -141,6 +141,9 @@ export const TIERS: Record<Tier, TierInfo> = {
 
 export const TIER_ORDER: Tier[] = ['deep', 'working', 'light', 'unknown'];
 
+/** Renewal interval when faceted connections are off: no depth to vary it by, so one cycle for all. */
+export const UNFACETED_REVIEW_MONTHS = 6;
+
 /** Length of the Met list reflection period before an encounter lapses. */
 export const MET_REFLECTION_DAYS = 7;
 
@@ -153,7 +156,9 @@ export function reciprocal(t: RelationshipType): RelationshipType {
   return t;
 }
 
-export function isReflectionDue(c: Connection, now = new Date()): boolean {
+/** With `faceted` false, depth is ignored and every connection is on the same cycle. */
+export function isReflectionDue(c: Connection, faceted = true, now = new Date()): boolean {
+  if (!faceted) return monthsBetween(c.lastReviewed, now) >= UNFACETED_REVIEW_MONTHS;
   if (c.type === 'unspecified') return true;
   return monthsBetween(c.lastReviewed, now) >= TIERS[tierOf(c.type)].reviewMonths;
 }

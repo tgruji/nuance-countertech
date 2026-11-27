@@ -21,15 +21,15 @@ export function TypePill({ type, size = 'sm' }: { type: RelationshipType; size?:
 
 /**
  * How a person relates to the viewer.
- * Standard mode: the familiar undifferentiated "· 1st".
+ * Standard mode, or faceted connections off: the familiar undifferentiated "· 1st".
  * Redesign: the described relationship, flagged when the two sides describe it differently.
  */
 export function RelationshipBadge({ personId, size = 'sm' }: { personId: string; size?: 'xs' | 'sm' }) {
-  const { redesign, connectionOf } = useApp();
+  const { faceted, connectionOf } = useApp();
   const conn = connectionOf(personId);
   if (!conn) return null;
 
-  if (!redesign) return <span className="text-sm font-normal text-black/60">· 1st</span>;
+  if (!faceted) return <span className="text-sm font-normal text-black/60">· 1st</span>;
 
   return (
     <span className="inline-flex items-center gap-1" title={conn.context || undefined}>

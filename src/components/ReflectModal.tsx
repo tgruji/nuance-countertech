@@ -26,7 +26,8 @@ export function ReflectModal({
   const conn = app.connectionOf(personId);
   const person = getPerson(personId);
   const name = firstName(person.name);
-  const [editing, setEditing] = useState(startEditing || conn?.type === 'unspecified');
+  // Without facets there is nothing to describe: only keep / follow / remove are offered.
+  const [editing, setEditing] = useState(app.faceted && (startEditing || conn?.type === 'unspecified'));
 
   if (!conn) return null;
 
@@ -58,6 +59,7 @@ export function ReflectModal({
         </div>
       </div>
 
+      {app.faceted && (
       <div className="mt-4 space-y-2 rounded-lg bg-black/[0.03] p-3 text-sm">
         {conn.type === 'unspecified' ? (
           <p>
@@ -89,6 +91,7 @@ export function ReflectModal({
           </p>
         )}
       </div>
+      )}
 
       {editing ? (
         <div className="mt-4">
@@ -116,13 +119,16 @@ export function ReflectModal({
         </div>
       ) : (
         <>
-          <p className="mb-2 mt-4 text-sm font-semibold">Does this still describe your relationship?</p>
+          <p className="mb-2 mt-4 text-sm font-semibold">
+            {app.faceted ? 'Does this still describe your relationship?' : `Do you want to keep this connection with ${name}?`}
+          </p>
           <div className="space-y-2">
-            {option(<Check size={18} />, 'Yes, still accurate', 'Keep the connection as it is.', () => {
+            {option(<Check size={18} />, app.faceted ? 'Yes, still accurate' : 'Yes, keep it', 'Keep the connection as it is.', () => {
               app.confirmConnection(personId);
               onClose();
             })}
-            {option(<Pencil size={18} />, 'It has changed', 'Relationships deepen and fade. Update the description.', () => setEditing(true))}
+            {app.faceted &&
+              option(<Pencil size={18} />, 'It has changed', 'Relationships deepen and fade. Update the description.', () => setEditing(true))}
             {option(<Eye size={18} />, 'Follow instead', `Keep seeing ${name}’s posts without claiming a relationship.`, () => {
               app.removeConnection(personId, true);
               onClose();

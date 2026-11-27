@@ -3,7 +3,7 @@ import { ArrowLeftRight, Coffee, Hourglass, MessageSquare, Pencil, RefreshCw, Se
 import type { Connection, Invitation, RelationshipType } from '../types';
 import { getPerson } from '../data/mockData';
 import { useApp } from '../store/AppContext';
-import { RELATIONSHIPS, SELECTABLE_TYPES, TIERS, descriptionsDiffer, tierOf, TIER_ORDER } from '../lib/relationships';
+import { RELATIONSHIPS, SELECTABLE_TYPES, TIERS, UNFACETED_REVIEW_MONTHS, descriptionsDiffer, tierOf, TIER_ORDER } from '../lib/relationships';
 import { duration, firstName, formatDate, navigate, timeAgoShort } from '../lib/utils';
 import { Avatar, Button, Card, Modal, PersonLink } from '../components/ui';
 import { TypePill } from '../components/RelationshipBadge';
@@ -30,7 +30,7 @@ function IncomingInvitation({ inv, onRedescribe }: { inv: Invitation; onRedescri
         <p className="text-sm text-black/60">{p.headline}</p>
         <p className="text-xs text-black/50">{timeAgoShort(inv.sentAt)} ago</p>
 
-        {app.redesign && inv.type !== 'unspecified' && (
+        {app.faceted && inv.type !== 'unspecified' && (
           <div className="mt-2 rounded-md bg-black/[0.03] p-2.5 text-sm">
             <span className="text-black/70">{name} describes your relationship as </span>
             <TypePill type={inv.type} />
@@ -43,11 +43,13 @@ function IncomingInvitation({ inv, onRedescribe }: { inv: Invitation; onRedescri
           <Button variant="ghost" size="sm" onClick={() => app.ignoreInvitation(inv.id)}>
             Ignore
           </Button>
-          {app.redesign ? (
+          {app.redesign && (
+            <Button variant="muted" size="sm" onClick={() => app.followInstead(inv.id)}>
+              Follow instead
+            </Button>
+          )}
+          {app.faceted ? (
             <>
-              <Button variant="muted" size="sm" onClick={() => app.followInstead(inv.id)}>
-                Follow instead
-              </Button>
               <Button variant="secondary" size="sm" onClick={onRedescribe}>
                 I’d describe it differently
               </Button>
@@ -71,7 +73,8 @@ function ConnectionRow({ conn, onReflect, onEdit }: { conn: Connection; onReflec
   const p = getPerson(conn.personId);
   const due = app.isDue(conn);
 
-  if (!app.redesign) {
+  // Undifferentiated row: standard mode, or the redesign with faceted connections off.
+  if (!app.faceted) {
     return (
       <li className="flex items-center gap-3 border-t border-black/10 px-4 py-3 first:border-t-0">
         <Avatar person={p} size="md" />
@@ -80,6 +83,11 @@ function ConnectionRow({ conn, onReflect, onEdit }: { conn: Connection; onReflec
           <p className="truncate text-sm text-black/60">{p.headline}</p>
           <p className="text-xs text-black/50">Connected on {formatDate(conn.since)}</p>
         </div>
+        {app.redesign && app.renewalReminders && (
+          <Button variant={due ? 'primary' : 'secondary'} size="sm" onClick={onReflect}>
+            <RefreshCw size={14} /> Reflect
+          </Button>
+        )}
         <Button variant="secondary" size="sm" onClick={() => navigate('/messaging')}>Message</Button>
         <button
           className="rounded-full p-2 text-black/60 hover:bg-black/5"
@@ -143,12 +151,15 @@ export function Network() {
   const countOf = (t: RelationshipType) => app.connections.filter((c) => c.type === t).length;
 
   const shown = app.connections
-    .filter((c) => !app.redesign || typeFilter === 'all' || c.type === typeFilter)
+    .filter((c) => !app.faceted || typeFilter === 'all' || c.type === typeFilter)
     .filter((c) => {
       const p = getPerson(c.personId);
-      return (p.name + p.headline + c.context).toLowerCase().includes(q.toLowerCase());
+      // Hidden descriptions aren't searchable while faceted connections are toggled off.
+      const searchContext = app.faceted || !app.redesign;
+      return (p.name + p.headline + (searchContext ? c.context : '')).toLowerCase().includes(q.toLowerCase());
     })
     .sort((a, b) => {
+      if (!app.faceted) return b.since.localeCompare(a.since);
       if (sort === 'type') return TIER_ORDER.indexOf(tierOf(a.type)) - TIER_ORDER.indexOf(tierOf(b.type));
       if (sort === 'reflected') return a.lastReviewed.localeCompare(b.lastReviewed);
       return b.since.localeCompare(a.since);
@@ -171,7 +182,7 @@ export function Network() {
       <aside>
         <Card className="overflow-hidden">
           <h2 className="px-4 py-3 font-semibold">Manage my network</h2>
-          {app.redesign ? (
+          {app.faceted ? (
             <>
               {filterButton('all', 'All relationships', app.connections.length)}
               {[...SELECTABLE_TYPES, 'unspecified' as const].map((t) =>
@@ -224,7 +235,7 @@ export function Network() {
                     <li key={inv.id} className="flex flex-wrap items-center gap-2 text-sm">
                       <Avatar person={p} size="xs" />
                       <PersonLink id={p.id} className="font-semibold">{p.name}</PersonLink>
-                      {app.redesign && inv.type !== 'unspecified' && <TypePill type={inv.type} size="xs" />}
+                      {app.faceted && inv.type !== 'unspecified' && <TypePill type={inv.type} size="xs" />}
                       <span className="text-xs text-black/50">sent {timeAgoShort(inv.sentAt)} ago</span>
                       <span className="ml-auto flex gap-1">
                         <Button variant="ghost" size="sm" onClick={() => app.withdrawInvitation(inv.id)}>Withdraw</Button>
@@ -249,10 +260,17 @@ export function Network() {
               <Hourglass size={20} className="mt-0.5 text-amber-700" />
               <div>
                 <h2 className="font-semibold">Due for reflection ({app.dueConnections.length})</h2>
-                <p className="text-sm text-black/60">
-                  Relationships change. Nuance periodically asks whether a connection still describes something real —
-                  brief encounters after {TIERS.light.reviewMonths} months, shared workplaces after {TIERS.working.reviewMonths}, close relationships after {TIERS.deep.reviewMonths}.
-                </p>
+                {app.faceted ? (
+                  <p className="text-sm text-black/60">
+                    Relationships change. Nuance periodically asks whether a connection still describes something real —
+                    brief encounters after {TIERS.light.reviewMonths} months, shared workplaces after {TIERS.working.reviewMonths}, close relationships after {TIERS.deep.reviewMonths}.
+                  </p>
+                ) : (
+                  <p className="text-sm text-black/60">
+                    Every {UNFACETED_REVIEW_MONTHS} months, Nuance asks whether you want to keep each connection, switch to
+                    Follow, or remove it. Nothing is removed automatically.
+                  </p>
+                )}
               </div>
             </div>
             <ul className="border-t border-black/10">
@@ -263,9 +281,11 @@ export function Network() {
                     <Avatar person={p} size="xs" />
                     <div className="min-w-0 flex-1 text-sm">
                       <span className="font-semibold">{p.name}</span>{' '}
-                      <TypePill type={c.type} size="xs" />
+                      {app.faceted && <TypePill type={c.type} size="xs" />}
                       <p className="truncate text-xs text-black/60">
-                        {c.type === 'unspecified'
+                        {!app.faceted
+                          ? `Connected ${duration(c.since)} ago · last reconsidered ${duration(c.lastReviewed)} ago`
+                          : c.type === 'unspecified'
                           ? `Connected ${duration(c.since)} ago with no description`
                           : `Last reflected on ${duration(c.lastReviewed)} ago · “${c.context}”`}
                       </p>
@@ -280,7 +300,7 @@ export function Network() {
 
         <Card>
           <div className="px-4 py-3">
-            {app.redesign ? (
+            {app.faceted ? (
               <div className="grid gap-4 sm:grid-cols-[1fr_260px]">
                 <div>
                   <h2 className="font-semibold">Your connections by relationship depth</h2>
@@ -298,7 +318,7 @@ export function Network() {
                 <Search size={16} className="text-black/50" />
                 <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name or context" className="w-full py-1.5 text-sm outline-none" />
               </div>
-              {app.redesign && (
+              {app.faceted && (
                 <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} className="rounded px-2 py-1.5 text-sm ring-1 ring-black/30">
                   <option value="recent">Recently added</option>
                   <option value="type">Relationship depth</option>
@@ -306,7 +326,7 @@ export function Network() {
                 </select>
               )}
             </div>
-            {app.redesign && typeFilter !== 'all' && (
+            {app.faceted && typeFilter !== 'all' && (
               <p className="mt-2 text-xs text-black/60">
                 Showing: {RELATIONSHIPS[typeFilter].label} ·{' '}
                 <button className="font-semibold text-brand hover:underline" onClick={() => setTypeFilter('all')}>show all</button>

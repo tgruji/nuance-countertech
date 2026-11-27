@@ -66,6 +66,11 @@ export interface Invitation {
   context: string;
   note?: string;
   sentAt: string;
+  /**
+   * Sent deliberately from the redesign without a description (faceted connections off).
+   * Unlike one-click standard-mode requests, these are not moved to the Met list.
+   */
+  deliberate?: boolean;
 }
 
 /**

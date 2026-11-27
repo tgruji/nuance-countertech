@@ -59,7 +59,11 @@ export function MetList() {
                   {!m.leftPending && (
                     <Button variant="muted" size="sm" onClick={() => app.leaveMetPending(p.id)}>Leave pending</Button>
                   )}
-                  <Button size="sm" onClick={() => setConfirming(p.id)}>Confirm & describe</Button>
+                  {app.faceted ? (
+                    <Button size="sm" onClick={() => setConfirming(p.id)}>Confirm & describe</Button>
+                  ) : (
+                    <Button size="sm" onClick={() => app.confirmMet(p.id)}>Confirm & invite</Button>
+                  )}
                   <button
                     className="ml-auto text-xs text-black/40 hover:text-black/70 hover:underline"
                     title="Demo only: end the reflection period now"
@@ -109,7 +113,7 @@ export function MetList() {
   );
 }
 
-/** Opt-in/opt-out switches for the two reflection mechanisms. */
+/** Opt-in/opt-out switches for the three mechanisms; each works independently of the others. */
 export function ReflectionSettings() {
   const app = useApp();
   const row = (label: string, desc: string, on: boolean, set: (v: boolean) => void) => (
@@ -124,6 +128,12 @@ export function ReflectionSettings() {
   return (
     <Card className="overflow-hidden">
       <h2 className="px-4 py-3 font-semibold">Reflection settings</h2>
+      {row(
+        'Faceted connections',
+        'Describe each connection’s context and depth. When off, connections look undifferentiated; descriptions are kept, just hidden.',
+        app.facetedConnections,
+        app.setFacetedConnections,
+      )}
       {row(
         'Reflection buffer',
         `Connect adds people to your Met list for ${MET_REFLECTION_DAYS} days before any invitation is sent.`,

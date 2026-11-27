@@ -102,6 +102,7 @@ export function ConnectButton({
   const onClick = () => {
     if (!app.redesign) app.sendInvitation(personId);
     else if (app.bufferActive) app.addToMetList(personId);
+    else if (!app.faceted) app.sendInvitation(personId); // nothing to describe without facets
     else setOpen(true);
   };
 
@@ -115,7 +116,7 @@ export function ConnectButton({
         onClick={onClick}
       >
         {size === 'sm' ? <Plus size={16} /> : <UserPlus size={16} />}
-        {app.redesign && !app.bufferActive ? 'Connect…' : 'Connect'}
+        {app.faceted && !app.bufferActive ? 'Connect…' : 'Connect'}
       </Button>
       {open && <ConnectModal personId={personId} onSend={(d) => app.sendInvitation(personId, d)} onClose={() => setOpen(false)} />}
     </>
